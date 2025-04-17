@@ -1,0 +1,6 @@
+timestamp,node_id,location,measurement_type,sampling_rate,voltage_1,voltage_2,voltage_3,current_1,current_2,current_3,power_1,power_2,power_3
+2024-01-20 10:00:00,station_001,Grid Section A,three_phase,1000Hz,230.5,231.2,230.8,10.2,10.1,10.3,2351.1,2335.12,2377.24
+2024-01-20 10:00:01,station_001,Grid Section A,three_phase,1000Hz,230.1,231.0,230.5,10.3,10.2,10.1,2370.03,2356.2,2328.05
+2024-01-20 10:00:02,station_002,Grid Section B,three_phase,1000Hz,229.8,230.5,230.2,10.4,10.3,10.2,2389.92,2374.15,2348.04
+2024-01-20 10:00:03,station_002,Grid Section B,three_phase,1000Hz,230.2,230.8,230.4,10.2,10.4,10.3,2348.04,2400.32,2373.12
+2024-01-20 10:00:04,station_003,Grid Section C,three_phase,1000Hz,230.4,231.1,230.7,10.1,10.2,10.4,2327.04,2357.22,2399.28

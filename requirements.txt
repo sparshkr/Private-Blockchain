@@ -1,0 +1,5 @@
+flask>=2.0.0
+numpy>=1.19.0
+requests>=2.25.0
+jsonpickle>=2.0.0
+pandas
