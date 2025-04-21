@@ -5,6 +5,7 @@ import jsonpickle
 import numpy as np
 from blockchain import Blockchain
 from block import Block
+from hashlib import sha256
 
 app = Flask(__name__)
 
@@ -100,9 +101,90 @@ def consensus():
     else:
         return "Chain was not replaced. Current chain is the longest.", 201
 
+@app.route('/attack', methods=['POST'])
+def attack():
+    '''
+    Endpoint to simulate an attack by modifying data in any block
+    Expected JSON payload:
+    {
+        "block_index": 1,  # Index of block to modify
+        "voltage_vector": [999.9, 999.9, 999.9],  # New voltage values
+        "current_vector": [0.1, 0.1, 0.1],        # New current values
+        "power_vector": [99.9, 99.9, 99.9]        # New power values
+    }
+    '''
+    try:
+        data = request.get_json()
+        
+        if 'block_index' not in data:
+            return "Block index required", 400
+            
+        block_index = data['block_index']
+        
+        if block_index >= len(blockchain.chain) or block_index < 1:
+            return f"Invalid block index. Must be between 1 and {len(blockchain.chain)-1}", 400
+
+        target_block = blockchain.chain[block_index]
+        
+        # Modify the block's power data based on provided values
+        if 'voltage_vector' in data:
+            target_block.power_data['voltage_vector'] = np.array(data['voltage_vector'])
+        if 'current_vector' in data:
+            target_block.power_data['current_vector'] = np.array(data['current_vector'])
+        if 'power_vector' in data:
+            target_block.power_data['power_vector'] = np.array(data['power_vector'])
+            
+        return f"Attack successful: Modified block {block_index}", 200
+        
+    except Exception as e:
+        return f"Attack failed: {str(e)}", 400
+
+@app.route('/verify', methods=['GET'])
+def verify():
+    '''
+    Endpoint to verify the integrity of the blockchain
+    Returns details about any detected tampering
+    '''
+    tampering_detected = []
+    
+    # Skip genesis block (index 0)
+    for i in range(1, len(blockchain.chain)):
+        current_block = blockchain.chain[i]
+        previous_block = blockchain.chain[i-1]
+        
+        # Verify the link to previous block is intact
+        if current_block.previous_hash != previous_block.hashid:
+            tampering_detected.append(
+                f"Block {i}: Hash chain broken - Previous hash doesn't match"
+            )
+
+        # Store original hash
+        original_hash = current_block.hashid
+        
+        # Reinitialize hash object and recalculate
+        current_block.hashid = sha256()
+        current_block.mine(blockchain.difficulty)
+        new_hash = current_block.hashid
+
+        # Restore original hash
+        current_block.hashid = original_hash
+
+        if original_hash != new_hash:
+            tampering_detected.append(
+                f"Block {i}: Content modified - Hash mismatch"
+            )
+            
+    result = {
+        'chain_length': len(blockchain.chain),
+        'is_valid': len(tampering_detected) == 0,
+        'tampering_detected': tampering_detected
+    }
+    
+    return jsonpickle.encode(result), 200
+
 if __name__ == "__main__":
     answer = input("Please enter the node that you want to use on the network: ")
     if answer == "1":
-        app.run(port= 5000) # allows for multiple nodes on the network and objective of consensus
+        app.run(port=5000)
     if answer == "2":
         app.run(port=5001)
